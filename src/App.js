@@ -818,7 +818,7 @@ const FinanceDashboard = () => {
                   </thead>
                   <tbody>
                     {transactions
-                      .slice(-10)
+                      // .slice(-10000)
                       .reverse()
                       .map((transaction) => (
                         <tr
@@ -1079,7 +1079,7 @@ const FinanceDashboard = () => {
                   </thead>
                   <tbody>
                     {investments
-                      .slice(-10)
+                      // .slice(-10)
                       .reverse()
                       .map((investment) => (
                         <tr
