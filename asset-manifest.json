@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/TestcaseManagementTool/static/css/main.1cb6faad.css",
-    "main.js": "/TestcaseManagementTool/static/js/main.da208680.js",
+    "main.css": "/TestcaseManagementTool/static/css/main.4e13c844.css",
+    "main.js": "/TestcaseManagementTool/static/js/main.fb08f508.js",
     "static/js/453.6418e2ff.chunk.js": "/TestcaseManagementTool/static/js/453.6418e2ff.chunk.js",
     "index.html": "/TestcaseManagementTool/index.html",
-    "main.1cb6faad.css.map": "/TestcaseManagementTool/static/css/main.1cb6faad.css.map",
-    "main.da208680.js.map": "/TestcaseManagementTool/static/js/main.da208680.js.map",
+    "main.4e13c844.css.map": "/TestcaseManagementTool/static/css/main.4e13c844.css.map",
+    "main.fb08f508.js.map": "/TestcaseManagementTool/static/js/main.fb08f508.js.map",
     "453.6418e2ff.chunk.js.map": "/TestcaseManagementTool/static/js/453.6418e2ff.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1cb6faad.css",
-    "static/js/main.da208680.js"
+    "static/css/main.4e13c844.css",
+    "static/js/main.fb08f508.js"
   ]
 }
