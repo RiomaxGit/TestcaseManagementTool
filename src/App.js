@@ -791,22 +791,13 @@ ${suite.name}:
                   {suite.testCases.map((testCase) => (
                     <div
                       key={testCase.id}
-                      className="bg-gray-600 p-3 rounded mb-2"
+                      className="bg-gray-700 border border-gray-600 rounded-lg p-4 mb-4 shadow-sm"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h6 className="text-white font-medium">
-                            {testCase.name}
-                          </h6>
-                          <p className="text-gray-300 text-sm mt-1">
-                            <strong>Steps:</strong> {testCase.testSteps}
-                          </p>
-                          <p className="text-gray-300 text-sm mt-1">
-                            <strong>Expected:</strong>{" "}
-                            {testCase.expectedResults}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-start justify-between mb-4">
+                        <h6 className="text-white font-semibold text-lg">
+                          {testCase.name}
+                        </h6>
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => {
                               setEditingCase(testCase);
@@ -817,18 +808,55 @@ ${suite.name}:
                                 expectedResults: testCase.expectedResults,
                               });
                             }}
-                            className="text-blue-400 hover:text-blue-300"
+                            className="text-blue-400 hover:text-blue-300 p-1"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={16} />
                           </button>
                           <button
                             onClick={() =>
                               deleteTestCase(suite.id, testCase.id)
                             }
-                            className="text-red-400 hover:text-red-300"
+                            className="text-red-400 hover:text-red-300 p-1"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={16} />
                           </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <h7 className="text-blue-300 font-medium text-sm uppercase tracking-wide mb-2 block">
+                            Test Steps
+                          </h7>
+                          <div className="bg-gray-800 rounded p-3">
+                            {testCase.testSteps
+                              .split("\n")
+                              .filter((step) => step.trim())
+                              .map((step, index) => (
+                                <div
+                                  key={index}
+                                  className="flex gap-3 mb-2 last:mb-0"
+                                >
+                                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] text-center">
+                                    {index + 1}
+                                  </span>
+                                  <p className="text-gray-200 text-sm flex-1 pt-0.5">
+                                    {step.trim()}
+                                  </p>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h7 className="text-green-300 font-medium text-sm uppercase tracking-wide mb-2 block">
+                            Expected Results
+                          </h7>
+                          <div className="bg-gray-800 rounded p-3">
+                            <p className="text-gray-200 text-sm leading-relaxed">
+                              {testCase.expectedResults}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -918,122 +946,269 @@ ${suite.name}:
         </button>
       </div>
 
-      <div className="space-y-4">
-        {testRuns.map((run) => (
-          <div key={run.id} className="bg-gray-800 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h4 className="text-white font-semibold text-lg">{run.name}</h4>
-                <div className="text-gray-400 text-sm">
-                  <span>Date: {run.date}</span> |
-                  <span className="ml-2">Environment: {run.environment}</span> |
-                  <span
-                    className={`ml-2 px-2 py-1 rounded text-xs ${
-                      run.completed ? "bg-green-600" : "bg-yellow-600"
-                    }`}
+      {/* Test Run Selection Dropdown */}
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Select Test Run to View
+        </h3>
+        <select
+          value={selectedTestRun || ""}
+          onChange={(e) => {
+            const value = e.target.value;
+            console.log("Dropdown selection:", value, typeof value);
+            setSelectedTestRun(value || null);
+          }}
+          className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
+        >
+          <option value="">-- Select a Test Run --</option>
+          {testRuns.map((run) => {
+            console.log("Test run option:", run.id, typeof run.id);
+            return (
+              <option key={run.id} value={run.id}>
+                {run.name} - {run.date} ({run.environment}) -{" "}
+                {run.completed ? "Completed" : "In Progress"}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+
+      {/* Selected Test Run Details */}
+      {selectedTestRun &&
+        (() => {
+          console.log(
+            "Selected test run ID:",
+            selectedTestRun,
+            typeof selectedTestRun
+          );
+          console.log(
+            "Available test runs:",
+            testRuns.map((r) => ({ id: r.id, type: typeof r.id }))
+          );
+
+          // Try both string and number comparison
+          const run = testRuns.find(
+            (r) =>
+              r.id === selectedTestRun ||
+              r.id == selectedTestRun ||
+              String(r.id) === String(selectedTestRun)
+          );
+          console.log("Found run:", run);
+
+          if (!run)
+            return (
+              <div className="bg-red-800 p-4 rounded text-white">
+                Test run not found! Selected: {selectedTestRun}
+              </div>
+            );
+
+          return (
+            <div className="bg-gray-800 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h4 className="text-white font-semibold text-2xl">
+                    {run.name}
+                  </h4>
+                  <div className="text-gray-400 text-sm mt-2">
+                    <span className="bg-gray-700 px-3 py-1 rounded mr-3">
+                      Date: {run.date}
+                    </span>
+                    <span className="bg-gray-700 px-3 py-1 rounded mr-3">
+                      Environment: {run.environment}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded text-xs font-medium ${
+                        run.completed
+                          ? "bg-green-600 text-white"
+                          : "bg-yellow-600 text-white"
+                      }`}
+                    >
+                      {run.completed ? "Completed" : "In Progress"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingRun(run);
+                      setRunForm({
+                        name: run.name,
+                        date: run.date,
+                        environment: run.environment,
+                        selectedSuites: run.suites.map((s) => s.id),
+                      });
+                    }}
+                    className="text-blue-400 hover:text-blue-300 p-2"
                   >
-                    {run.completed ? "Completed" : "In Progress"}
-                  </span>
+                    <Edit2 size={18} />
+                  </button>
+                  <button
+                    onClick={() => deleteTestRun(run.id)}
+                    className="text-red-400 hover:text-red-300 p-2"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setEditingRun(run);
-                    setRunForm({
-                      name: run.name,
-                      date: run.date,
-                      environment: run.environment,
-                      selectedSuites: run.suites.map((s) => s.id),
-                    });
-                  }}
-                  className="text-blue-400 hover:text-blue-300"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => deleteTestRun(run.id)}
-                  className="text-red-400 hover:text-red-300"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
 
-            <div className="mb-4">
-              <h5 className="text-white font-medium mb-2">Test Cases:</h5>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {run.testCases.map((testCase) => (
-                  <div
-                    key={`${testCase.id}-${testCase.suiteId}`}
-                    className="bg-gray-700 p-3 rounded"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <span className="text-gray-300 text-sm">
-                          {testCase.suiteName}
-                        </span>
-                        <h6 className="text-white font-medium">
-                          {testCase.name}
-                        </h6>
+              {/* Test Run Summary */}
+              <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-gray-700 p-4 rounded">
+                  <div className="text-2xl font-bold text-white">
+                    {run.testCases.length}
+                  </div>
+                  <div className="text-gray-400 text-sm">Total Cases</div>
+                </div>
+                <div className="bg-green-700 p-4 rounded">
+                  <div className="text-2xl font-bold text-white">
+                    {
+                      run.testCases.filter((tc) => tc.status === "passed")
+                        .length
+                    }
+                  </div>
+                  <div className="text-gray-200 text-sm">Passed</div>
+                </div>
+                <div className="bg-red-700 p-4 rounded">
+                  <div className="text-2xl font-bold text-white">
+                    {
+                      run.testCases.filter((tc) => tc.status === "failed")
+                        .length
+                    }
+                  </div>
+                  <div className="text-gray-200 text-sm">Failed</div>
+                </div>
+                <div className="bg-yellow-700 p-4 rounded">
+                  <div className="text-2xl font-bold text-white">
+                    {
+                      run.testCases.filter((tc) => tc.status === "pending")
+                        .length
+                    }
+                  </div>
+                  <div className="text-gray-200 text-sm">Pending</div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h5 className="text-white font-semibold text-xl mb-4">
+                  Test Cases Execution
+                </h5>
+                <div className="space-y-4">
+                  {run.testCases.map((testCase) => (
+                    <div
+                      key={`${testCase.id}-${testCase.suiteId}`}
+                      className="bg-gray-700 border border-gray-600 rounded-lg p-5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <div className="text-blue-300 font-medium text-sm uppercase tracking-wide mb-1">
+                            {testCase.suiteName}
+                          </div>
+                          <h6 className="text-white font-semibold text-lg">
+                            {testCase.name}
+                          </h6>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={testCase.status}
+                            onChange={(e) =>
+                              updateTestCaseStatus(
+                                run.id,
+                                testCase.id,
+                                testCase.suiteId,
+                                e.target.value,
+                                testCase.comment
+                              )
+                            }
+                            className={`px-3 py-2 rounded font-medium ${
+                              testCase.status === "passed"
+                                ? "bg-green-600 text-white"
+                                : testCase.status === "failed"
+                                ? "bg-red-600 text-white"
+                                : "bg-yellow-600 text-white"
+                            }`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="passed">Passed</option>
+                            <option value="failed">Failed</option>
+                          </select>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={testCase.status}
-                          onChange={(e) =>
-                            updateTestCaseStatus(
-                              run.id,
-                              testCase.id,
-                              testCase.suiteId,
-                              e.target.value,
-                              testCase.comment
-                            )
-                          }
-                          className={`px-2 py-1 rounded text-sm ${
-                            testCase.status === "passed"
-                              ? "bg-green-600"
-                              : testCase.status === "failed"
-                              ? "bg-red-600"
-                              : "bg-yellow-600"
-                          } text-white`}
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="passed">Passed</option>
-                          <option value="failed">Failed</option>
-                        </select>
+
+                      <div className="space-y-4">
+                        <div>
+                          <h7 className="text-blue-300 font-medium text-sm uppercase tracking-wide mb-2 block">
+                            Test Steps
+                          </h7>
+                          <div className="bg-gray-800 rounded p-3">
+                            {testCase.testSteps
+                              .split("\n")
+                              .filter((step) => step.trim())
+                              .map((step, index) => (
+                                <div
+                                  key={index}
+                                  className="flex gap-3 mb-2 last:mb-0"
+                                >
+                                  <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] text-center">
+                                    {index + 1}
+                                  </span>
+                                  <p className="text-gray-200 text-sm flex-1 pt-0.5">
+                                    {step.trim()}
+                                  </p>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h7 className="text-green-300 font-medium text-sm uppercase tracking-wide mb-2 block">
+                            Expected Results
+                          </h7>
+                          <div className="bg-gray-800 rounded p-3">
+                            <p className="text-gray-200 text-sm leading-relaxed">
+                              {testCase.expectedResults}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h7 className="text-orange-300 font-medium text-sm uppercase tracking-wide mb-2 block">
+                            Execution Notes
+                          </h7>
+                          <textarea
+                            placeholder="Add execution notes, actual results, or comments..."
+                            value={testCase.comment}
+                            onChange={(e) =>
+                              updateTestCaseStatus(
+                                run.id,
+                                testCase.id,
+                                testCase.suiteId,
+                                testCase.status,
+                                e.target.value
+                              )
+                            }
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded border border-gray-600 focus:border-orange-500 outline-none text-sm"
+                            rows="3"
+                          />
+                        </div>
                       </div>
                     </div>
-                    <textarea
-                      placeholder="Add comment..."
-                      value={testCase.comment}
-                      onChange={(e) =>
-                        updateTestCaseStatus(
-                          run.id,
-                          testCase.id,
-                          testCase.suiteId,
-                          testCase.status,
-                          e.target.value
-                        )
-                      }
-                      className="w-full bg-gray-600 text-white px-2 py-1 rounded text-sm"
-                      rows="1"
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {!run.completed && (
-              <button
-                onClick={() => markTestRunComplete(run.id)}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              >
-                Mark as Completed
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+              {!run.completed && (
+                <div className="text-center">
+                  <button
+                    onClick={() => markTestRunComplete(run.id)}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+                  >
+                    Mark Test Run as Completed
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
     </div>
   );
 
