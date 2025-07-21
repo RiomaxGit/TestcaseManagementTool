@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Financial_Dashboard/static/css/main.1cb6faad.css",
-    "main.js": "/Financial_Dashboard/static/js/main.9d24476f.js",
-    "static/js/453.6418e2ff.chunk.js": "/Financial_Dashboard/static/js/453.6418e2ff.chunk.js",
-    "index.html": "/Financial_Dashboard/index.html",
-    "main.1cb6faad.css.map": "/Financial_Dashboard/static/css/main.1cb6faad.css.map",
-    "main.9d24476f.js.map": "/Financial_Dashboard/static/js/main.9d24476f.js.map",
-    "453.6418e2ff.chunk.js.map": "/Financial_Dashboard/static/js/453.6418e2ff.chunk.js.map"
+    "main.css": "/TestcaseManagementTool/static/css/main.1cb6faad.css",
+    "main.js": "/TestcaseManagementTool/static/js/main.da208680.js",
+    "static/js/453.6418e2ff.chunk.js": "/TestcaseManagementTool/static/js/453.6418e2ff.chunk.js",
+    "index.html": "/TestcaseManagementTool/index.html",
+    "main.1cb6faad.css.map": "/TestcaseManagementTool/static/css/main.1cb6faad.css.map",
+    "main.da208680.js.map": "/TestcaseManagementTool/static/js/main.da208680.js.map",
+    "453.6418e2ff.chunk.js.map": "/TestcaseManagementTool/static/js/453.6418e2ff.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.1cb6faad.css",
-    "static/js/main.9d24476f.js"
+    "static/js/main.da208680.js"
   ]
 }
