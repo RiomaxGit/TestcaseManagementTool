@@ -268,9 +268,17 @@ const TestManagementTool = () => {
 
   // Print Report Functions
   const printReportPage = () => {
-    const reportData = getReportData(selectedTestRun);
-    const suiteData = selectedTestRun.suites.map((suite) => {
-      const suiteCases = selectedTestRun.testCases.filter(
+    // Find the actual test run object from the ID
+    const selectedRun = testRuns.find((run) => run.id === selectedTestRun);
+
+    if (!selectedRun) {
+      alert("No test run selected or test run not found!");
+      return;
+    }
+
+    const reportData = getReportData(selectedRun);
+    const suiteData = selectedRun.suites.map((suite) => {
+      const suiteCases = selectedRun.testCases.filter(
         (tc) => tc.suiteId === suite.id
       );
       const passed = suiteCases.filter((tc) => tc.status === "passed").length;
@@ -286,7 +294,7 @@ const TestManagementTool = () => {
     printWindow.document.write(`
       <html>
         <head>
-          <title>Test Report - ${selectedTestRun?.name}</title>
+          <title>Test Report - ${selectedRun?.name}</title>
           <style>
             body { 
               font-family: Arial, sans-serif; 
@@ -420,17 +428,17 @@ const TestManagementTool = () => {
             <div class="report-header">
               <div class="report-title">Test Run Report</div>
               <div class="report-info">
-                <strong>${selectedTestRun.name}</strong> • ${
-      selectedTestRun.date
-    } • ${selectedTestRun.environment} • 
+                <strong>${selectedRun.name}</strong> • ${selectedRun.date} • ${
+      selectedRun.environment
+    } • 
                 <span style="color: ${
-                  selectedTestRun.completed ? "#10B981" : "#F59E0B"
+                  selectedRun.completed ? "#10B981" : "#F59E0B"
                 }">
-                  ${selectedTestRun.completed ? "Completed" : "In Progress"}
+                  ${selectedRun.completed ? "Completed" : "In Progress"}
                 </span>
               </div>
             </div>
-
+  
             <div class="stats-grid">
               <div class="stat-card stat-total">
                 <div class="stat-value">${reportData.total}</div>
@@ -449,7 +457,7 @@ const TestManagementTool = () => {
                 <div class="stat-label">Pending</div>
               </div>
             </div>
-
+  
             <div class="suite-summary">
               <div class="section-title">Test Suite Summary</div>
               ${suiteData
@@ -465,7 +473,7 @@ const TestManagementTool = () => {
                 )
                 .join("")}
             </div>
-
+  
             <div class="section-title page-break">Detailed Test Results</div>
             <div class="table-container">
               <table>
@@ -478,7 +486,7 @@ const TestManagementTool = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  ${selectedTestRun.testCases
+                  ${selectedRun.testCases
                     .map(
                       (tc) => `
                     <tr>
@@ -956,20 +964,19 @@ ${suite.name}:
           onChange={(e) => {
             const value = e.target.value;
             console.log("Dropdown selection:", value, typeof value);
-            setSelectedTestRun(value || null);
+            // Convert to number if it's a string, or set to null
+            const runId = value ? parseInt(value) : null;
+            setSelectedTestRun(runId);
           }}
           className="w-full bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none"
         >
           <option value="">-- Select a Test Run --</option>
-          {testRuns.map((run) => {
-            console.log("Test run option:", run.id, typeof run.id);
-            return (
-              <option key={run.id} value={run.id}>
-                {run.name} - {run.date} ({run.environment}) -{" "}
-                {run.completed ? "Completed" : "In Progress"}
-              </option>
-            );
-          })}
+          {testRuns.map((run) => (
+            <option key={run.id} value={run.id}>
+              {run.name} - {run.date} ({run.environment}) -{" "}
+              {run.completed ? "Completed" : "In Progress"}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -1219,10 +1226,12 @@ ${suite.name}:
           Test Run Reports
         </h3>
         <select
-          value={selectedTestRun?.id || ""}
+          value={selectedTestRun || ""}
           onChange={(e) => {
-            const run = testRuns.find((r) => r.id === parseInt(e.target.value));
-            setSelectedTestRun(run);
+            const value = e.target.value;
+            // Ensure consistent handling - store as number ID
+            const runId = value ? parseInt(value) : null;
+            setSelectedTestRun(runId);
           }}
           className="bg-gray-700 text-white px-4 py-2 rounded border border-gray-600 focus:border-blue-500 outline-none w-full md:w-auto"
         >
@@ -1235,226 +1244,274 @@ ${suite.name}:
         </select>
       </div>
 
-      {selectedTestRun && (
-        <div className="space-y-6">
-          <div className="bg-gray-800 p-6 rounded-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-xl font-semibold text-white">
-                Report: {selectedTestRun.name}
-              </h4>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => downloadReport(selectedTestRun)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <FileDown size={16} />
-                  Download Report
-                </button>
-                <button
-                  onClick={printReportPage}
-                  className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
-                >
-                  <FileDown size={16} />
-                  Print Report Page
-                </button>
+      {selectedTestRun &&
+        (() => {
+          // Find the selected test run object
+          const selectedRun = testRuns.find(
+            (run) => run.id === selectedTestRun
+          );
+
+          if (!selectedRun) {
+            return (
+              <div className="bg-red-800 p-4 rounded text-white">
+                Test run not found! Selected ID: {selectedTestRun}
+              </div>
+            );
+          }
+
+          return (
+            <div className="space-y-6">
+              <div className="bg-gray-800 p-6 rounded-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <h4 className="text-xl font-semibold text-white">
+                    Report: {selectedRun.name}
+                  </h4>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => downloadReport(selectedRun)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                    >
+                      <FileDown size={16} />
+                      Download Report
+                    </button>
+                    <button
+                      onClick={printReportPage}
+                      className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 flex items-center gap-2"
+                    >
+                      <FileDown size={16} />
+                      Print Report Page
+                    </button>
+                  </div>
+                </div>
+
+                {(() => {
+                  const reportData = getReportData(selectedRun);
+                  const pieData = [
+                    {
+                      name: "Passed",
+                      value: reportData.passed,
+                      color: "#10B981",
+                    },
+                    {
+                      name: "Failed",
+                      value: reportData.failed,
+                      color: "#EF4444",
+                    },
+                    {
+                      name: "Pending",
+                      value: reportData.pending,
+                      color: "#F59E0B",
+                    },
+                  ].filter((item) => item.value > 0);
+
+                  const suiteData = selectedRun.suites.map((suite) => {
+                    const suiteCases = selectedRun.testCases.filter(
+                      (tc) => tc.suiteId === suite.id
+                    );
+                    const passed = suiteCases.filter(
+                      (tc) => tc.status === "passed"
+                    ).length;
+                    const failed = suiteCases.filter(
+                      (tc) => tc.status === "failed"
+                    ).length;
+                    const pending = suiteCases.filter(
+                      (tc) => tc.status === "pending"
+                    ).length;
+                    return {
+                      name: suite.name,
+                      passed,
+                      failed,
+                      pending,
+                      total: suiteCases.length,
+                    };
+                  });
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-blue-600 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-white">
+                            {reportData.total}
+                          </div>
+                          <div className="text-blue-100">Total Cases</div>
+                        </div>
+                        <div className="bg-green-600 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-white">
+                            {reportData.passed}
+                          </div>
+                          <div className="text-green-100">Passed</div>
+                        </div>
+                        <div className="bg-red-600 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-white">
+                            {reportData.failed}
+                          </div>
+                          <div className="text-red-100">Failed</div>
+                        </div>
+                        <div className="bg-yellow-600 p-4 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-white">
+                            {reportData.pending}
+                          </div>
+                          <div className="text-yellow-100">Pending</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h5 className="text-white font-semibold mb-4">
+                            Test Results Distribution
+                          </h5>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <RechartsPieChart>
+                              <Tooltip />
+                              <Pie
+                                data={pieData}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {pieData.map((entry, index) => (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={entry.color}
+                                  />
+                                ))}
+                              </Pie>
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                        </div>
+
+                        <div className="bg-gray-700 p-4 rounded-lg">
+                          <h5 className="text-white font-semibold mb-4">
+                            Results by Test Suite
+                          </h5>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={suiteData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="name" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Bar
+                                dataKey="passed"
+                                stackId="a"
+                                fill="#10B981"
+                              />
+                              <Bar
+                                dataKey="failed"
+                                stackId="a"
+                                fill="#EF4444"
+                              />
+                              <Bar
+                                dataKey="pending"
+                                stackId="a"
+                                fill="#F59E0B"
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-700 p-4 rounded-lg">
+                        <h5 className="text-white font-semibold mb-4">
+                          Pass Rate by Suite
+                        </h5>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart
+                            data={suiteData.map((suite) => ({
+                              ...suite,
+                              passRate:
+                                suite.total > 0
+                                  ? (
+                                      (suite.passed / suite.total) *
+                                      100
+                                    ).toFixed(1)
+                                  : 0,
+                            }))}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => `${value}%`} />
+                            <Line
+                              type="monotone"
+                              dataKey="passRate"
+                              stroke="#3B82F6"
+                              strokeWidth={2}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      <div className="bg-gray-700 rounded-lg overflow-hidden">
+                        <h5 className="text-white font-semibold p-4 bg-gray-600">
+                          Detailed Test Results
+                        </h5>
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-600">
+                              <tr>
+                                <th className="text-white p-3 text-left">
+                                  Suite
+                                </th>
+                                <th className="text-white p-3 text-left">
+                                  Test Case
+                                </th>
+                                <th className="text-white p-3 text-left">
+                                  Status
+                                </th>
+                                <th className="text-white p-3 text-left">
+                                  Comment
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedRun.testCases.map((testCase, index) => (
+                                <tr
+                                  key={`${testCase.id}-${testCase.suiteId}`}
+                                  className={
+                                    index % 2 === 0
+                                      ? "bg-gray-800"
+                                      : "bg-gray-700"
+                                  }
+                                >
+                                  <td className="text-gray-300 p-3">
+                                    {testCase.suiteName}
+                                  </td>
+                                  <td className="text-white p-3">
+                                    {testCase.name}
+                                  </td>
+                                  <td className="p-3">
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs ${
+                                        testCase.status === "passed"
+                                          ? "bg-green-600"
+                                          : testCase.status === "failed"
+                                          ? "bg-red-600"
+                                          : "bg-yellow-600"
+                                      } text-white`}
+                                    >
+                                      {testCase.status.charAt(0).toUpperCase() +
+                                        testCase.status.slice(1)}
+                                    </span>
+                                  </td>
+                                  <td className="text-gray-300 p-3">
+                                    {testCase.comment || "No comment"}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
-
-            {(() => {
-              const reportData = getReportData(selectedTestRun);
-              const pieData = [
-                { name: "Passed", value: reportData.passed, color: "#10B981" },
-                { name: "Failed", value: reportData.failed, color: "#EF4444" },
-                {
-                  name: "Pending",
-                  value: reportData.pending,
-                  color: "#F59E0B",
-                },
-              ].filter((item) => item.value > 0);
-
-              const suiteData = selectedTestRun.suites.map((suite) => {
-                const suiteCases = selectedTestRun.testCases.filter(
-                  (tc) => tc.suiteId === suite.id
-                );
-                const passed = suiteCases.filter(
-                  (tc) => tc.status === "passed"
-                ).length;
-                const failed = suiteCases.filter(
-                  (tc) => tc.status === "failed"
-                ).length;
-                const pending = suiteCases.filter(
-                  (tc) => tc.status === "pending"
-                ).length;
-                return {
-                  name: suite.name,
-                  passed,
-                  failed,
-                  pending,
-                  total: suiteCases.length,
-                };
-              });
-
-              return (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-blue-600 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-white">
-                        {reportData.total}
-                      </div>
-                      <div className="text-blue-100">Total Cases</div>
-                    </div>
-                    <div className="bg-green-600 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-white">
-                        {reportData.passed}
-                      </div>
-                      <div className="text-green-100">Passed</div>
-                    </div>
-                    <div className="bg-red-600 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-white">
-                        {reportData.failed}
-                      </div>
-                      <div className="text-red-100">Failed</div>
-                    </div>
-                    <div className="bg-yellow-600 p-4 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-white">
-                        {reportData.pending}
-                      </div>
-                      <div className="text-yellow-100">Pending</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <h5 className="text-white font-semibold mb-4">
-                        Test Results Distribution
-                      </h5>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <RechartsPieChart>
-                          <Tooltip />
-                          <RechartsPieChart
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {pieData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </RechartsPieChart>
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <h5 className="text-white font-semibold mb-4">
-                        Results by Test Suite
-                      </h5>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={suiteData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="passed" stackId="a" fill="#10B981" />
-                          <Bar dataKey="failed" stackId="a" fill="#EF4444" />
-                          <Bar dataKey="pending" stackId="a" fill="#F59E0B" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-700 p-4 rounded-lg">
-                    <h5 className="text-white font-semibold mb-4">
-                      Pass Rate by Suite
-                    </h5>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart
-                        data={suiteData.map((suite) => ({
-                          ...suite,
-                          passRate:
-                            suite.total > 0
-                              ? ((suite.passed / suite.total) * 100).toFixed(1)
-                              : 0,
-                        }))}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `${value}%`} />
-                        <Line
-                          type="monotone"
-                          dataKey="passRate"
-                          stroke="#3B82F6"
-                          strokeWidth={2}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  <div className="bg-gray-700 rounded-lg overflow-hidden">
-                    <h5 className="text-white font-semibold p-4 bg-gray-600">
-                      Detailed Test Results
-                    </h5>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-600">
-                          <tr>
-                            <th className="text-white p-3 text-left">Suite</th>
-                            <th className="text-white p-3 text-left">
-                              Test Case
-                            </th>
-                            <th className="text-white p-3 text-left">Status</th>
-                            <th className="text-white p-3 text-left">
-                              Comment
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedTestRun.testCases.map((testCase, index) => (
-                            <tr
-                              key={`${testCase.id}-${testCase.suiteId}`}
-                              className={
-                                index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"
-                              }
-                            >
-                              <td className="text-gray-300 p-3">
-                                {testCase.suiteName}
-                              </td>
-                              <td className="text-white p-3">
-                                {testCase.name}
-                              </td>
-                              <td className="p-3">
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    testCase.status === "passed"
-                                      ? "bg-green-600"
-                                      : testCase.status === "failed"
-                                      ? "bg-red-600"
-                                      : "bg-yellow-600"
-                                  } text-white`}
-                                >
-                                  {testCase.status.charAt(0).toUpperCase() +
-                                    testCase.status.slice(1)}
-                                </span>
-                              </td>
-                              <td className="text-gray-300 p-3">
-                                {testCase.comment || "No comment"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
+          );
+        })()}
     </div>
   );
 
